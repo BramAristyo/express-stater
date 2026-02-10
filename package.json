@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup",
-    "start": "node dist/index.mjs",
-    "dev": "nodemon --exec tsx src/index.ts",
+    "start": "node dist/app.mjs",
+    "dev": "nodemon --exec tsx src/app.ts",
     "render:build": "npm i && npx prisma generate --no-engine && npm run build",
     "render:start": "npx prisma migrate deploy && npm run start",
     "format": "prettier --write .",
