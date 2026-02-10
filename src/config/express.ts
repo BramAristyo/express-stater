@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { prisma } from './db';
-import { router as routes } from '../routes';
+import userModule from '../modules/user';
 
 const createServer = (): express.Application => {
   const app = express();
@@ -12,7 +12,8 @@ const createServer = (): express.Application => {
 
   app.disable('x-powered-by');
 
-  app.use('/api', routes);
+  app.use('/api/users', userModule);
+
 
   app.get('/health', async (req, res) => {
     try {
