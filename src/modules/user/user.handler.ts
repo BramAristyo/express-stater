@@ -23,7 +23,13 @@ export class UserHandler {
         const perPage = parseInt(req.query.perPage as string) || 10;
 
         const users = await this.userService.getPaginated(page, perPage);
-        res.json(users);
+        res.json({
+            data: users,
+            meta: {
+                page: page,
+                limit: perPage,
+            }
+        });
     }
 
     getById = async (req: Request, res: Response) => {
