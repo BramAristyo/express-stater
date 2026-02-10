@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { prisma } from './db';
 
 const createServer = (): express.Application => {
   const app = express();
@@ -10,8 +11,13 @@ const createServer = (): express.Application => {
 
   app.disable('x-powered-by');
 
-  app.get('/ping', (req, res) => {
-    res.send('pong');
+  app.get('/health', async (req, res) => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      res.json({ status: 200, database: 'connected' });
+    } catch (err) {
+      res.status(503).json({ status: 503, data: err });
+    }
   });
 
   return app;

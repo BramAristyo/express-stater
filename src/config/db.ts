@@ -22,8 +22,14 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-const cleanup = async () => {
-  await prisma.$disconnect();
+export const cleanup = async () => {
+  try {
+    await prisma.$disconnect();
+    await pool.end();
+    console.log("Cleaning up database...");
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 process.on("beforeExit", cleanup);

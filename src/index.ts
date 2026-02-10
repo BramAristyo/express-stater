@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { createServer } from './config/express';
-import { prisma } from './config/db';
+import { prisma, cleanup } from './config/db';
 import http from 'http';
 import { AddressInfo } from 'net';
 dotenv.config();
@@ -17,7 +17,7 @@ const startServer = async () => {
     process.exit(1);
   }
     
-  const app = await createServer();
+  const app = createServer();
   const server = http.createServer(app).listen({ host, port }, () => {
     const addressInfo = server.address() as AddressInfo;
     console.log(
@@ -29,15 +29,31 @@ const startServer = async () => {
   signalTraps.forEach((type) => {
     process.once(type, async () => {
       console.log(`Received ${type}, closing server...`);
-      server.close(() => {
+      server.close(async () => {
         console.log('Server closed');
+        await cleanup();
         process.exit(0);
       });
     });
   });
 };
 
-startServer().catch((err) => {
+
+process.on('unhandledRejection', async (err) => {
+  console.error('Unhandled Rejection:', err);
+  await cleanup();
+  process.exit(1);
+});
+
+process.on('uncaughtException', async (err) => {
+  console.error('Uncaught exception:', err);
+  await cleanup();
+  process.exit(1);
+})
+
+
+startServer().catch(async (err) => {
   console.error('Failed to start server:', err);
+  await cleanup();
   process.exit(1);
 });
