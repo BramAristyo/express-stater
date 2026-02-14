@@ -10,8 +10,12 @@ const repository = new UserRepository(prisma);
 const service = new UserService(repository);
 const handler = new UserHandler(service);
 
-router.use('/all', handler.getAll);
-router.use('/:id', handler.getById);
-router.use('/', handler.getPaginated);
+router.get('/all', handler.getAll);
+router.get('/:id', handler.getById);
+router.post('/', handler.create);
+router.put('/:id', handler.update);
+router.delete('/:id', handler.delete);
+router.get('/', handler.getPaginated);
+
 
 export default router;

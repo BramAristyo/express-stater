@@ -1,6 +1,8 @@
 import { logger } from '../../config/logging';
+import { errorResponse, successResponse } from '../../utils/response.utils';
+import { createUserSchema, updateUserSchema } from './user.schema';
 import { UserService } from './user.service';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 export class UserHandler {
 
@@ -8,38 +10,65 @@ export class UserHandler {
         private userService: UserService
     ){}
 
-    getAll = async (req: any, res: any) => {
+    getAll = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const users = await this.userService.getAll();
-            res.json(users);
+            return res.json(users);
         } catch (error) {
-            logger.error(`Error fetching users: ${(error as Error).message}`);
-            res.status(500).json({ error: (error as Error).message });
+            next(error);
         }
     }
 
-    getPaginated = async (req: Request, res: Response) => {
+    getPaginated = async (req: Request, res: Response, next: NextFunction) => {
         const page = parseInt(req.query.page as string) || 1;
         const perPage = parseInt(req.query.perPage as string) || 10;
 
-        const users = await this.userService.getPaginated(page, perPage);
-        res.json({
-            data: users,
-            meta: {
-                page: page,
-                limit: perPage,
-            }
-        });
+        try {
+            const users = await this.userService.getPaginated(page, perPage);
+            return res.json(users);
+        } catch (error) {
+            next(error);
+        }
     }
 
-    getById = async (req: Request, res: Response) => {
+    getById = async (req: Request, res: Response, next: NextFunction) => {
         const id = parseInt(String(req.params.id));
         try {
             const user = await this.userService.getById(id);
-            res.json(user);
+            return successResponse(res, user, "User fetched successfully");
         } catch (error) {
-            logger.error(`Error fetching user by ID: ${(error as Error).message}`);
-            res.status(500).json({ error: (error as Error).message });
+            next(error);
+        }
+    }
+
+    create = async (req: Request, res: Response, next: NextFunction) => {
+        const validated = createUserSchema.parse(req);
+        try {
+            const newUser = await this.userService.create(validated.body);
+            return successResponse(res, newUser, "User created successfully", 201);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    update = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const validated = updateUserSchema.parse(req);
+            const id = parseInt(String(req.params.id));
+            const updatedUser = await this.userService.update(id, validated.body);
+            return successResponse(res, updatedUser, "User updated successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    delete = async (req: Request, res: Response, next: NextFunction) => {
+        const id = parseInt(String(req.params.id));
+        try {
+            const deletedUser = await this.userService.delete(id);
+            return successResponse(res, deletedUser, "User deleted successfully");
+        } catch (error) {
+            next(error);
         }
     }
 }
